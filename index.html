@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alarm Clock</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f14;
+      color: #e8e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+      transition: background 0.3s;
+    }
+
+    body.ringing {
+      animation: flash 0.5s infinite alternate;
+    }
+
+    @keyframes flash {
+      from { background: #0f0f14; }
+      to   { background: #1a0a1a; }
+    }
+
+    h1 {
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #6b6b88;
+      margin-bottom: 32px;
+    }
+
+    #clock {
+      font-size: clamp(4rem, 16vw, 7rem);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      color: #e8e8f0;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+
+    #date {
+      font-size: 0.9rem;
+      color: #6b6b88;
+      margin-bottom: 48px;
+      letter-spacing: 0.1em;
+    }
+
+    .add-alarm {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 32px;
+      align-items: center;
+    }
+
+    input[type="time"] {
+      background: #1c1c28;
+      border: 1px solid #2e2e45;
+      color: #e8e8f0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 1.1rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    input[type="time"]:focus {
+      border-color: #7b6cf6;
+    }
+
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.7);
+      cursor: pointer;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      padding: 10px 20px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    button:active { transform: scale(0.97); }
+
+    .btn-add {
+      background: #7b6cf6;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .btn-add:hover { opacity: 0.85; }
+
+    #alarm-list {
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .alarm-item {
+      background: #1c1c28;
+      border: 1px solid #2e2e45;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      gap: 12px;
+    }
+
+    .alarm-item.active {
+      border-color: #7b6cf6;
+    }
+
+    .alarm-time {
+      flex: 1;
+      font-size: 1.4rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
+    }
+
+    .alarm-toggle {
+      width: 44px;
+      height: 24px;
+      background: #2e2e45;
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: none;
+      padding: 0;
+    }
+
+    .alarm-toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #6b6b88;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .alarm-toggle.on { background: #3d2e8f; }
+    .alarm-toggle.on::after { transform: translateX(20px); background: #7b6cf6; }
+
+    .btn-delete {
+      background: transparent;
+      color: #6b6b88;
+      padding: 4px 8px;
+      font-size: 1.1rem;
+      border-radius: 6px;
+    }
+
+    .btn-delete:hover { color: #ff6b6b; background: #2e1c1c; }
+
+    #ring-banner {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 8, 20, 0.92);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      z-index: 100;
+    }
+
+    #ring-banner.show { display: flex; }
+
+    #ring-banner .ring-time {
+      font-size: clamp(3rem, 14vw, 6rem);
+      font-variant-numeric: tabular-nums;
+      color: #7b6cf6;
+      letter-spacing: 0.05em;
+    }
+
+    #ring-banner p {
+      color: #a0a0c0;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .btn-stop {
+      background: #7b6cf6;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 14px 40px;
+      border-radius: 40px;
+      margin-top: 8px;
+    }
+
+    .btn-stop:hover { opacity: 0.85; }
+
+    .empty {
+      color: #3a3a55;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 24px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Alarm Clock</h1>
+  <div id="clock">00:00:00</div>
+  <div id="date"></div>
+
+  <div class="add-alarm">
+    <input type="time" id="time-input">
+    <button class="btn-add" onclick="addAlarm()">+ 追加</button>
+  </div>
+
+  <div id="alarm-list"></div>
+
+  <div id="ring-banner">
+    <p>アラーム</p>
+    <div class="ring-time" id="ring-time"></div>
+    <button class="btn-stop" onclick="stopAlarm()">止める</button>
+  </div>
+
+  <script>
+    const alarms = [];
+    let audioCtx = null;
+    let ringing = false;
+    let beepInterval = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function beep() {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.4);
+    }
+
+    function startRinging(timeStr) {
+      if (ringing) return;
+      ringing = true;
+      document.getElementById('ring-time').textContent = timeStr;
+      document.getElementById('ring-banner').classList.add('show');
+      document.body.classList.add('ringing');
+      beep();
+      beepInterval = setInterval(beep, 1000);
+    }
+
+    function stopAlarm() {
+      ringing = false;
+      clearInterval(beepInterval);
+      document.getElementById('ring-banner').classList.remove('show');
+      document.body.classList.remove('ringing');
+    }
+
+    function padZ(n) { return String(n).padStart(2, '0'); }
+
+    function tickClock() {
+      const now = new Date();
+      const hh = padZ(now.getHours());
+      const mm = padZ(now.getMinutes());
+      const ss = padZ(now.getSeconds());
+      document.getElementById('clock').textContent = `${hh}:${mm}:${ss}`;
+
+      const days = ['日', '月', '火', '水', '木', '金', '土'];
+      const y = now.getFullYear(), mo = now.getMonth() + 1, d = now.getDate();
+      const dow = days[now.getDay()];
+      document.getElementById('date').textContent =
+        `${y}年${mo}月${d}日（${dow}）`;
+
+      if (!ringing) {
+        const currentTime = `${hh}:${mm}`;
+        alarms.forEach(a => {
+          if (a.on && a.time === currentTime && ss === '00') {
+            startRinging(a.time);
+          }
+        });
+      }
+    }
+
+    function renderAlarms() {
+      const list = document.getElementById('alarm-list');
+      if (alarms.length === 0) {
+        list.innerHTML = '<p class="empty">アラームが設定されていません</p>';
+        return;
+      }
+      list.innerHTML = alarms.map((a, i) => `
+        <div class="alarm-item ${a.on ? 'active' : ''}">
+          <span class="alarm-time">${a.time}</span>
+          <button class="alarm-toggle ${a.on ? 'on' : ''}" onclick="toggleAlarm(${i})" title="${a.on ? 'オフ' : 'オン'}"></button>
+          <button class="btn-delete" onclick="deleteAlarm(${i})" title="削除">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function addAlarm() {
+      const input = document.getElementById('time-input');
+      const val = input.value;
+      if (!val) return;
+      if (alarms.some(a => a.time === val)) return;
+      alarms.push({ time: val, on: true });
+      alarms.sort((a, b) => a.time.localeCompare(b.time));
+      renderAlarms();
+      input.value = '';
+    }
+
+    function toggleAlarm(i) {
+      alarms[i].on = !alarms[i].on;
+      renderAlarms();
+    }
+
+    function deleteAlarm(i) {
+      alarms.splice(i, 1);
+      renderAlarms();
+    }
+
+    document.getElementById('time-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addAlarm();
+    });
+
+    renderAlarms();
+    tickClock();
+    setInterval(tickClock, 1000);
+  </script>
+</body>
+</html>
