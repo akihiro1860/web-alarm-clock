@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Alarm Clock</title>
+  <title>LIONS Alarm Clock</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0f0f14;
-      color: #e8e8f0;
+      background: #001240;
+      color: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 40px 16px;
       transition: background 0.3s;
+      background-image:
+        radial-gradient(ellipse at top, #002080 0%, #001240 60%);
     }
 
     body.ringing {
@@ -24,32 +26,61 @@
     }
 
     @keyframes flash {
-      from { background: #0f0f14; }
-      to   { background: #1a0a1a; }
+      from { background-color: #001240; }
+      to   { background-color: #001a5a; }
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 32px;
+    }
+
+    .lions-logo {
+      font-size: 2.8rem;
+      line-height: 1;
     }
 
     h1 {
-      font-size: 0.85rem;
-      letter-spacing: 0.25em;
+      font-size: 0.75rem;
+      letter-spacing: 0.35em;
       text-transform: uppercase;
-      color: #6b6b88;
-      margin-bottom: 32px;
+      color: #c8a84b;
+      font-weight: 700;
+    }
+
+    .team-name {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: #8899cc;
+      text-transform: uppercase;
     }
 
     #clock {
       font-size: clamp(4rem, 16vw, 7rem);
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.04em;
-      color: #e8e8f0;
+      color: #f0c040;
       margin-bottom: 8px;
       line-height: 1;
+      text-shadow: 0 0 40px rgba(240, 192, 64, 0.3);
     }
 
     #date {
       font-size: 0.9rem;
-      color: #6b6b88;
+      color: #8899cc;
       margin-bottom: 48px;
       letter-spacing: 0.1em;
+    }
+
+    .divider {
+      width: 100%;
+      max-width: 360px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #c8a84b55, transparent);
+      margin-bottom: 32px;
     }
 
     .add-alarm {
@@ -60,9 +91,9 @@
     }
 
     input[type="time"] {
-      background: #1c1c28;
-      border: 1px solid #2e2e45;
-      color: #e8e8f0;
+      background: #001a5a;
+      border: 1px solid #1a3080;
+      color: #ffffff;
       border-radius: 10px;
       padding: 10px 14px;
       font-size: 1.1rem;
@@ -72,11 +103,12 @@
     }
 
     input[type="time"]:focus {
-      border-color: #7b6cf6;
+      border-color: #c8a84b;
+      box-shadow: 0 0 0 2px rgba(200, 168, 75, 0.2);
     }
 
     input[type="time"]::-webkit-calendar-picker-indicator {
-      filter: invert(0.7);
+      filter: invert(0.8) sepia(1) saturate(2) hue-rotate(5deg);
       cursor: pointer;
     }
 
@@ -92,12 +124,13 @@
     button:active { transform: scale(0.97); }
 
     .btn-add {
-      background: #7b6cf6;
-      color: #fff;
-      font-weight: 600;
+      background: linear-gradient(135deg, #c8a84b, #e8c860);
+      color: #001240;
+      font-weight: 700;
+      letter-spacing: 0.05em;
     }
 
-    .btn-add:hover { opacity: 0.85; }
+    .btn-add:hover { opacity: 0.9; }
 
     #alarm-list {
       width: 100%;
@@ -108,8 +141,8 @@
     }
 
     .alarm-item {
-      background: #1c1c28;
-      border: 1px solid #2e2e45;
+      background: #001a5a;
+      border: 1px solid #1a3080;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -118,7 +151,8 @@
     }
 
     .alarm-item.active {
-      border-color: #7b6cf6;
+      border-color: #c8a84b;
+      box-shadow: 0 0 12px rgba(200, 168, 75, 0.15);
     }
 
     .alarm-time {
@@ -126,17 +160,22 @@
       font-size: 1.4rem;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.05em;
+      color: #ffffff;
+    }
+
+    .alarm-item.active .alarm-time {
+      color: #f0c040;
     }
 
     .alarm-toggle {
       width: 44px;
       height: 24px;
-      background: #2e2e45;
+      background: #0d2060;
       border-radius: 12px;
       position: relative;
       cursor: pointer;
       transition: background 0.2s;
-      border: none;
+      border: 1px solid #1a3080;
       padding: 0;
     }
 
@@ -146,30 +185,30 @@
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: #6b6b88;
-      top: 3px;
-      left: 3px;
+      background: #3a4a80;
+      top: 2px;
+      left: 2px;
       transition: transform 0.2s, background 0.2s;
     }
 
-    .alarm-toggle.on { background: #3d2e8f; }
-    .alarm-toggle.on::after { transform: translateX(20px); background: #7b6cf6; }
+    .alarm-toggle.on { background: #1a3a00; border-color: #c8a84b; }
+    .alarm-toggle.on::after { transform: translateX(20px); background: #c8a84b; }
 
     .btn-delete {
       background: transparent;
-      color: #6b6b88;
+      color: #3a4a80;
       padding: 4px 8px;
       font-size: 1.1rem;
       border-radius: 6px;
     }
 
-    .btn-delete:hover { color: #ff6b6b; background: #2e1c1c; }
+    .btn-delete:hover { color: #ff6b6b; background: rgba(255, 107, 107, 0.1); }
 
     #ring-banner {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(10, 8, 20, 0.92);
+      background: rgba(0, 10, 40, 0.95);
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -179,34 +218,47 @@
 
     #ring-banner.show { display: flex; }
 
+    #ring-banner .ring-lion {
+      font-size: 4rem;
+      animation: bounce 0.6s infinite alternate;
+    }
+
+    @keyframes bounce {
+      from { transform: scale(1); }
+      to   { transform: scale(1.15); }
+    }
+
+    #ring-banner .ring-label {
+      font-size: 0.8rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #c8a84b;
+      font-weight: 700;
+    }
+
     #ring-banner .ring-time {
       font-size: clamp(3rem, 14vw, 6rem);
       font-variant-numeric: tabular-nums;
-      color: #7b6cf6;
+      color: #f0c040;
       letter-spacing: 0.05em;
-    }
-
-    #ring-banner p {
-      color: #a0a0c0;
-      font-size: 1rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
+      text-shadow: 0 0 60px rgba(240, 192, 64, 0.5);
     }
 
     .btn-stop {
-      background: #7b6cf6;
-      color: #fff;
-      font-weight: 700;
+      background: linear-gradient(135deg, #c8a84b, #e8c860);
+      color: #001240;
+      font-weight: 800;
       font-size: 1.1rem;
       padding: 14px 40px;
       border-radius: 40px;
       margin-top: 8px;
+      letter-spacing: 0.05em;
     }
 
-    .btn-stop:hover { opacity: 0.85; }
+    .btn-stop:hover { opacity: 0.9; }
 
     .empty {
-      color: #3a3a55;
+      color: #1a3080;
       font-size: 0.9rem;
       text-align: center;
       padding: 24px 0;
@@ -215,9 +267,15 @@
 </head>
 <body>
 
-  <h1>Alarm Clock</h1>
+  <div class="header">
+    <div class="lions-logo">🦁</div>
+    <h1>Alarm Clock</h1>
+    <div class="team-name">Saitama Seibu Lions</div>
+  </div>
+
   <div id="clock">00:00:00</div>
   <div id="date"></div>
+  <div class="divider"></div>
 
   <div class="add-alarm">
     <input type="time" id="time-input">
@@ -227,7 +285,8 @@
   <div id="alarm-list"></div>
 
   <div id="ring-banner">
-    <p>アラーム</p>
+    <div class="ring-lion">🦁</div>
+    <div class="ring-label">アラーム</div>
     <div class="ring-time" id="ring-time"></div>
     <button class="btn-stop" onclick="stopAlarm()">止める</button>
   </div>
